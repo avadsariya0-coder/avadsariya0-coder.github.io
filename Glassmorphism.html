@@ -8,6 +8,7 @@
         :root {
             --blur-amount: 20px;
             --depth-opacity: 0.3;
+            --aura-opacity: 0.4;
         }
 
         * {
@@ -26,13 +27,12 @@
 
         #wallpaper {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-size: cover;
             background-position: center;
             z-index: 1;
+            transition: background-image 0.5s ease;
         }
 
         .glass-container {
@@ -43,54 +43,98 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 80px 20px;
+            padding: 60px 20px;
             backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             background: rgba(255, 255, 255, var(--depth-opacity));
-            transition: background 0.5s ease;
         }
 
-        #clock {
-            font-size: 5.5rem;
-            font-weight: 700;
+        .status-bar {
+            position: absolute;
+            top: 20px;
+            right: 25px;
             color: white;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-top: 10vh;
-            transition: font-family 0.8s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .battery-icon {
+            width: 25px;
+            height: 12px;
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 3px;
+            position: relative;
+            padding: 1px;
+        }
+
+        #battery-level {
+            height: 100%;
+            background: #4cd964;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .time-wrapper {
+            text-align: center;
+            margin-top: 5vh;
+            position: relative;
+        }
+
+        .time-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(255,255,255,var(--aura-opacity)) 0%, transparent 70%);
+            z-index: -1;
+            animation: breathe 8s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.6; }
+        }
+
+        #date { color: white; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        #clock { font-size: 5.5rem; font-weight: 700; color: white; text-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        #notepad {
+            width: 90%;
+            max-width: 400px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 15px;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            resize: none;
+            outline: none;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            user-select: text;
         }
 
         .controls {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             padding: 25px;
             border-radius: 30px;
             color: white;
             width: 90%;
             max-width: 350px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s ease;
-            opacity: 1;
-            pointer-events: all;
+            backdrop-filter: blur(20px);
+            transition: opacity 0.5s, transform 0.5s;
         }
 
-        .controls.hidden {
-            opacity: 0;
-            transform: translateY(30px);
-            pointer-events: none;
-        }
-
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.7rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-        input[type="range"] { width: 100%; accent-color: #fff; cursor: pointer; }
-        input[type="file"] { font-size: 0.8rem; width: 100%; }
-        
-        .hint {
-            font-size: 0.75rem;
-            opacity: 0.5;
-            text-align: center;
-            margin-top: 10px;
-            font-style: italic;
-        }
+        .controls.hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.7rem; margin-bottom: 5px; opacity: 0.7; }
+        input[type="range"] { width: 100%; accent-color: #fff; }
+        input[type="file"] { font-size: 0.8rem; }
+        .hint { font-size: 0.7rem; opacity: 0.5; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body ondblclick="toggleControls()">
@@ -98,72 +142,117 @@
     <div id="wallpaper"></div>
 
     <div class="glass-container">
-        <div id="clock">00:00:00</div>
+        <div class="status-bar">
+            <span id="bat-text">--%</span>
+            <div class="battery-icon"><div id="battery-level"></div></div>
+        </div>
+
+        <div class="time-wrapper">
+            <div id="date">LOADING...</div>
+            <div id="clock">00:00:00</div>
+        </div>
+
+        <textarea id="notepad" placeholder="Tap to type a note..."></textarea>
 
         <div class="controls" id="controlPanel">
             <div class="control-group">
-                <label>Upload Wallpaper</label>
+                <label>Wallpaper</label>
                 <input type="file" id="bgUpload" accept="image/*">
             </div>
             <div class="control-group">
-                <label>Liquid Blur Intensity</label>
+                <label>Liquid Blur</label>
                 <input type="range" id="blurRange" min="0" max="100" value="20">
             </div>
             <div class="control-group">
-                <label>Glass Depth (Opacity)</label>
+                <label>Glass Depth</label>
                 <input type="range" id="depthRange" min="0" max="100" value="30">
             </div>
-            <p class="hint">Double-click anywhere to show/hide settings</p>
+            <p class="hint">Double-click screen to hide settings</p>
         </div>
     </div>
 
     <script>
         const clockEl = document.getElementById('clock');
+        const dateEl = document.getElementById('date');
         const controlPanel = document.getElementById('controlPanel');
+        const wallpaper = document.getElementById('wallpaper');
+        const notepad = document.getElementById('notepad');
         
-        const fonts = [
-            'sans-serif', 'serif', 'monospace', 'cursive', 'system-ui', 
-            'Arial Black', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS',
-            'Verdana', 'Times New Roman'
-        ];
+        const fonts = ['sans-serif', 'serif', 'monospace', 'cursive', 'system-ui', 'Arial Black', 'Impact', 'Georgia'];
 
         function updateTime() {
             const now = new Date();
-            const h = now.getHours();
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            
-            clockEl.innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
-            
-            const fontIndex = h % fonts.length;
-            clockEl.style.fontFamily = fonts[fontIndex];
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            dateEl.innerText = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+            clockEl.innerText = now.toTimeString().split(' ')[0];
+            clockEl.style.fontFamily = fonts[now.getHours() % fonts.length];
         }
 
-        function toggleControls() {
-            controlPanel.classList.toggle('hidden');
-        }
-
-        document.getElementById('bgUpload').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    document.getElementById('wallpaper').style.backgroundImage = `url(${event.target.result})`;
-                    controlPanel.classList.add('hidden');
+        async function updateBattery() {
+            try {
+                const battery = await navigator.getBattery();
+                const update = () => {
+                    const level = Math.round(battery.level * 100);
+                    document.getElementById('bat-text').innerText = level + '%';
+                    document.getElementById('battery-level').style.width = level + '%';
+                    document.getElementById('battery-level').style.background = level <= 20 ? '#ff3b30' : '#4cd964';
                 };
-                reader.readAsDataURL(e.target.files[0]);
+                update();
+                battery.addEventListener('levelchange', update);
+            } catch (e) { document.querySelector('.status-bar').style.display = 'none'; }
+        }
+
+        function toggleControls() { controlPanel.classList.toggle('hidden'); }
+
+        function save() {
+            const data = {
+                blur: document.getElementById('blurRange').value,
+                depth: document.getElementById('depthRange').value,
+                bg: wallpaper.style.backgroundImage,
+                note: notepad.value
+            };
+            localStorage.setItem('ios26_vFinal', JSON.stringify(data));
+        }
+
+        function load() {
+            const saved = JSON.parse(localStorage.getItem('ios26_vFinal'));
+            if (saved) {
+                document.getElementById('blurRange').value = saved.blur;
+                document.getElementById('depthRange').value = saved.depth;
+                document.documentElement.style.setProperty('--blur-amount', saved.blur + 'px');
+                document.documentElement.style.setProperty('--depth-opacity', saved.depth / 100);
+                if (saved.bg) wallpaper.style.backgroundImage = saved.bg;
+                if (saved.note) notepad.value = saved.note;
             }
+        }
+
+        document.getElementById('bgUpload').addEventListener('change', (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                wallpaper.style.backgroundImage = `url(${ev.target.result})`;
+                controlPanel.classList.add('hidden');
+                save();
+            };
+            reader.readAsDataURL(e.target.files[0]);
         });
 
         document.getElementById('blurRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--blur-amount', e.target.value + 'px');
+            save();
         });
 
         document.getElementById('depthRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--depth-opacity', e.target.value / 100);
+            save();
         });
+
+        notepad.addEventListener('input', save);
 
         setInterval(updateTime, 1000);
         updateTime();
+        updateBattery();
+        load();
     </script>
 </body>
 </html>
