@@ -15,11 +15,15 @@
             padding: 0;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
         }
 
-        
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
 
-        
         #wallpaper {
             position: fixed;
             top: 0;
@@ -28,11 +32,9 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            transition: filter 0.5s ease, transform 0.5s ease;
             z-index: 1;
         }
 
-        
         .glass-container {
             position: relative;
             z-index: 2;
@@ -42,74 +44,87 @@
             align-items: center;
             justify-content: space-between;
             padding: 80px 20px;
-            
             backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             background: rgba(255, 255, 255, var(--depth-opacity));
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: background 0.5s ease;
         }
 
-       
         #clock {
-            font-size: 5rem;
+            font-size: 5.5rem;
             font-weight: 700;
             color: white;
             text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-top: 10vh;
             transition: font-family 0.8s ease;
         }
 
-        
         .controls {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            border-radius: 30px;
             color: white;
-            width: 100%;
-            max-width: 300px;
-            backdrop-filter: blur(10px);
+            width: 90%;
+            max-width: 350px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s ease;
+            opacity: 1;
+            pointer-events: all;
         }
 
-        .control-group {
-            margin-bottom: 15px;
+        .controls.hidden {
+            opacity: 0;
+            transform: translateY(30px);
+            pointer-events: none;
         }
 
-        label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0; }
-        input[type="range"] { width: 100%; cursor: pointer; }
-        input[type="file"] { font-size: 0.7rem; }
-
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.7rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+        input[type="range"] { width: 100%; accent-color: #fff; cursor: pointer; }
+        input[type="file"] { font-size: 0.8rem; width: 100%; }
+        
+        .hint {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
-<body>
-<body ondblclick="toggleControls()"> html {
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-        }
+<body ondblclick="toggleControls()">
+
     <div id="wallpaper"></div>
 
     <div class="glass-container">
         <div id="clock">00:00:00</div>
 
-        <div class="controls">
+        <div class="controls" id="controlPanel">
             <div class="control-group">
                 <label>Upload Wallpaper</label>
                 <input type="file" id="bgUpload" accept="image/*">
             </div>
             <div class="control-group">
-                <label>Glass Blur</label>
+                <label>Liquid Blur Intensity</label>
                 <input type="range" id="blurRange" min="0" max="100" value="20">
             </div>
             <div class="control-group">
-                <label>Glass Depth (Transparency)</label>
+                <label>Glass Depth (Opacity)</label>
                 <input type="range" id="depthRange" min="0" max="100" value="30">
             </div>
+            <p class="hint">Double-click anywhere to show/hide settings</p>
         </div>
     </div>
 
     <script>
+        const clockEl = document.getElementById('clock');
+        const controlPanel = document.getElementById('controlPanel');
+        
         const fonts = [
-            'serif', 'sans-serif', 'monospace', 'cursive', 'system-ui', 
-            'Georgia', 'Verdana', 'Impact', 'Courier New', 'Trebuchet MS'
+            'sans-serif', 'serif', 'monospace', 'cursive', 'system-ui', 
+            'Arial Black', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS',
+            'Verdana', 'Times New Roman'
         ];
 
         function updateTime() {
@@ -118,39 +133,37 @@
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
             
-            
-            document.getElementById('clock').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
-            
+            clockEl.innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
             
             const fontIndex = h % fonts.length;
-            document.getElementById('clock').style.fontFamily = fonts[fontIndex];
+            clockEl.style.fontFamily = fonts[fontIndex];
         }
 
-        
+        function toggleControls() {
+            controlPanel.classList.toggle('hidden');
+        }
+
         document.getElementById('bgUpload').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('wallpaper').style.backgroundImage = `url(${event.target.result})`;
-            };
-            reader.readAsDataURL(e.target.files[0]);
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('wallpaper').style.backgroundImage = `url(${event.target.result})`;
+                    controlPanel.classList.add('hidden');
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
         });
 
-        
         document.getElementById('blurRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--blur-amount', e.target.value + 'px');
         });
 
-        
         document.getElementById('depthRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--depth-opacity', e.target.value / 100);
         });
 
-        
         setInterval(updateTime, 1000);
         updateTime();
-
-        
-        document.getElementById('wallpaper').style.backgroundColor = '#1a1a1a';
     </script>
 </body>
 </html>
