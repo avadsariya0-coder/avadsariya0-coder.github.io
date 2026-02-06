@@ -17,13 +17,9 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        body, html {
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-        }
+        
 
-        /* The Wallpaper Layer */
+        
         #wallpaper {
             position: fixed;
             top: 0;
@@ -36,7 +32,7 @@
             z-index: 1;
         }
 
-        /* The Liquid Glass Container */
+        
         .glass-container {
             position: relative;
             z-index: 2;
@@ -46,14 +42,14 @@
             align-items: center;
             justify-content: space-between;
             padding: 80px 20px;
-            /* The Magic: iOS Glass Effect */
+            
             backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
             background: rgba(255, 255, 255, var(--depth-opacity));
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Digital Clock */
+       
         #clock {
             font-size: 5rem;
             font-weight: 700;
@@ -62,7 +58,7 @@
             transition: font-family 0.8s ease;
         }
 
-        /* Customization Controls */
+        
         .controls {
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
@@ -77,14 +73,18 @@
             margin-bottom: 15px;
         }
 
-        label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0.8; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0; }
         input[type="range"] { width: 100%; cursor: pointer; }
         input[type="file"] { font-size: 0.7rem; }
 
     </style>
 </head>
 <body>
-
+<body ondblclick="toggleControls()"> html {
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
     <div id="wallpaper"></div>
 
     <div class="glass-container">
@@ -118,15 +118,15 @@
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
             
-            // Set Clock Text
+            
             document.getElementById('clock').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
             
-            // Change font every hour based on the index
+            
             const fontIndex = h % fonts.length;
             document.getElementById('clock').style.fontFamily = fonts[fontIndex];
         }
 
-        // Handle Background Upload
+        
         document.getElementById('bgUpload').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -135,21 +135,21 @@
             reader.readAsDataURL(e.target.files[0]);
         });
 
-        // Handle Real-time Blur Adjustment
+        
         document.getElementById('blurRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--blur-amount', e.target.value + 'px');
         });
 
-        // Handle Real-time Transparency/Depth
+        
         document.getElementById('depthRange').addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--depth-opacity', e.target.value / 100);
         });
 
-        // Initial Calls
+        
         setInterval(updateTime, 1000);
         updateTime();
 
-        // Default Background
+        
         document.getElementById('wallpaper').style.backgroundColor = '#1a1a1a';
     </script>
 </body>
