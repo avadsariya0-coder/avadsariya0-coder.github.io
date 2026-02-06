@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS 26 Liquid Glass</title>
+    <style>
+        :root {
+            --blur-amount: 20px;
+            --depth-opacity: 0.3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* The Wallpaper Layer */
+        #wallpaper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: filter 0.5s ease, transform 0.5s ease;
+            z-index: 1;
+        }
+
+        /* The Liquid Glass Container */
+        .glass-container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 80px 20px;
+            /* The Magic: iOS Glass Effect */
+            backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-amount)) saturate(180%);
+            background: rgba(255, 255, 255, var(--depth-opacity));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Digital Clock */
+        #clock {
+            font-size: 5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: font-family 0.8s ease;
+        }
+
+        /* Customization Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 20px;
+            color: white;
+            width: 100%;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0.8; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        input[type="file"] { font-size: 0.7rem; }
+
+    </style>
+</head>
+<body>
+
+    <div id="wallpaper"></div>
+
+    <div class="glass-container">
+        <div id="clock">00:00:00</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Upload Wallpaper</label>
+                <input type="file" id="bgUpload" accept="image/*">
+            </div>
+            <div class="control-group">
+                <label>Glass Blur</label>
+                <input type="range" id="blurRange" min="0" max="100" value="20">
+            </div>
+            <div class="control-group">
+                <label>Glass Depth (Transparency)</label>
+                <input type="range" id="depthRange" min="0" max="100" value="30">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fonts = [
+            'serif', 'sans-serif', 'monospace', 'cursive', 'system-ui', 
+            'Georgia', 'Verdana', 'Impact', 'Courier New', 'Trebuchet MS'
+        ];
+
+        function updateTime() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            
+            // Set Clock Text
+            document.getElementById('clock').innerText = `${String(h).padStart(2, '0')}:${m}:${s}`;
+            
+            // Change font every hour based on the index
+            const fontIndex = h % fonts.length;
+            document.getElementById('clock').style.fontFamily = fonts[fontIndex];
+        }
+
+        // Handle Background Upload
+        document.getElementById('bgUpload').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('wallpaper').style.backgroundImage = `url(${event.target.result})`;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Handle Real-time Blur Adjustment
+        document.getElementById('blurRange').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--blur-amount', e.target.value + 'px');
+        });
+
+        // Handle Real-time Transparency/Depth
+        document.getElementById('depthRange').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--depth-opacity', e.target.value / 100);
+        });
+
+        // Initial Calls
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Default Background
+        document.getElementById('wallpaper').style.backgroundColor = '#1a1a1a';
+    </script>
+</body>
+</html>
